@@ -51,7 +51,12 @@ function workload_cpu {
 
 function workload_mem {
     local pid
-    local CHIMEM_BIN="$SOURCE_DIR/bin/chimem"
+    local CHIMEM_BIN="/usr/bin/chimem"
+
+    if [ -e "$SOURCE_DIR/bin/chimem"] ; then
+        CHIMEM_BIN="$SOURCE_DIR/bin/chimem"
+    fi
+
     echo "WORKLOAD memory"
 
     ${CHIMEM_BIN} &
