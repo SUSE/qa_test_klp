@@ -4,3 +4,24 @@ infrastructure in the hope of making bugs creep out of their hideouts.
 
 klp_tc_8.sh is not yet working as the required functionality (patch module
 removal) is present only in kGraft and not in KLP.
+
+Brief test case description
+---------------------------
+
+TC3 Patch under pressure
+    * Patch a heavily hammered function in kernel.
+
+TC5 Test kernel live patching in quick succession
+    * Apply one patch after another in quick succession.
+
+TC6 Patch while CPUs are busy
+    * Make CPUs busy in user space and patch.
+
+TC7 Test kernel live patching in low-memory condition
+    * Run a workload that will bring the system close to OOM and then start
+      patching.
+    * Requires hiworkload from a closed SUSE repository. TODO - replace 
+      hiworkload with an opensource alternative.
+
+TC8 Patch with replace-all
+    * Make sure "replace-all" KLP function works as expected.
