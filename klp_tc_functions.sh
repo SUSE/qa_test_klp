@@ -42,9 +42,10 @@ function klp_compile_patch_module() {
 }
 
 function klp_in_progress() {
-    return 1 # until upstream receives a consistency model
-
-    [ "$(cat /sys/kernel/livepatch/in_progress)" -ne 0 ]
+    for p in /sys/kernel/livepatch/*; do
+            [ 0$(cat "$p/transition" 2>/dev/null) -ne 0 ] && return 0
+    done
+    return 1
 }
 
 function klp_wait_complete() {
