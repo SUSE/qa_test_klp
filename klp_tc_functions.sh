@@ -125,6 +125,28 @@ function klp_tc_init() {
     fi
 }
 
+declare -a MODULES_LOADED
+
+function register_mod_for_unload() {
+    [ -z "$1" ] && echo "WARNING: no parameters passed to register_mod_for_unload"
+    MODULES_LOADED=("$1" ${MODULES_LOADED[@]})
+}
+
+function klp_tc_exit() {
+    trap - EXIT
+
+    klp_tc_milestone "Removing patches"
+
+    for P in ${MODULES_LOADED[@]}; do
+	klp_tc_milestone "Disabling and removing module $P"
+	echo 0 > /sys/kernel/livepatch/"$P"/enabled
+	klp_wait_complete 61
+	rmmod "$P"
+    done
+
+    klp_tc_milestone "TEST PASSED"
+}
+
 function klp_tc_milestone() {
     klp_tc_write "***" "$*"
 }

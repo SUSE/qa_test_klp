@@ -46,9 +46,10 @@ for N in $(seq 1 $N_PATCHES); do
 	klp_dump_blocking_processes
 	klp_tc_abort "patching didn't finish in time (patch $N)"
     fi
+
+    register_mod_for_unload "$PATCH_MOD_NAME$N"
 done
 
 # test passed if execution reached this line
 # failures beyond this point are not test case failures
-trap - EXIT
-klp_tc_milestone "TEST PASSED, reboot to remove the live patches"
+klp_tc_exit

@@ -38,6 +38,7 @@ insmod "$PATCH_DIR/$PATCH_MOD_NAME".ko
 if [ ! -e /sys/kernel/livepatch/"$PATCH_MOD_NAME" ]; then
    klp_tc_abort "don't see $PATCH_MOD_NAME in live patch sys directory"
 fi
+register_mod_for_unload "$PATCH_MOD_NAME"
 
 klp_tc_milestone "Wait for completion"
 if ! klp_wait_complete 61; then
@@ -50,4 +51,4 @@ fi
 trap - EXIT
 klp_tc_milestone "Call hooks before exit"
 call_recovery_hooks
-klp_tc_milestone "TEST PASSED, reboot to remove the live patch"
+klp_tc_exit
