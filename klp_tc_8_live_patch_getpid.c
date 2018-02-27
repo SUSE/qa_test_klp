@@ -43,10 +43,7 @@ static struct klp_object objs[] = {
 static struct klp_patch patch = {
         .mod = THIS_MODULE,
         .objs = objs,
-/* "replace all" feature is the whole point of this test
- * until KLP receives that capability, this test will fail
-	.replace_all = true,
-*/
+	.replace = true,
 };
 
 

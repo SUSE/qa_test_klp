@@ -2,9 +2,6 @@ Shell scripts to stress Linux Kernel Live Patching infrastructure. These
 scripts try to induce a few stressful situations for the live patching
 infrastructure in the hope of making bugs creep out of their hideouts.
 
-klp_tc_8.sh is not yet working as the required functionality (patch module
-removal) is present only in kGraft and not in KLP.
-
 Brief test case description
 ---------------------------
 

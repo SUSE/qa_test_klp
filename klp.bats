@@ -17,8 +17,6 @@
 }
 
 @test "Patch with replace-all" {
-    # not possible with KLP as of v4.10
-    skip
     ./klp_tc_8.sh
 }
 
