@@ -118,6 +118,9 @@ function klp_tc_write() {
 
 function klp_tc_init() {
     trap "[ \$? -ne 0 ] && echo TEST FAILED while executing \'\$BASH_COMMAND\', EXITING; call_recovery_hooks" EXIT
+    # timestamp every line of output
+    exec > >(awk '{ print strftime("[%T] ") $0 }')
+    exec 2>&1
     klp_tc_write "$1"
     if klp_in_progress; then
         klp_tc_write "ERROR kernel live patching in progress, cannot start test"
