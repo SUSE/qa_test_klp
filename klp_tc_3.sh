@@ -24,7 +24,7 @@ set -e
 klp_tc_init "Test Case 3: Patch under pressure"
 
 klp_tc_milestone "Compiling kernel live patch"
-PATCH_DIR="/tmp/live-patch/tc_1"
+PATCH_DIR="/tmp/live-patch/tc_3"
 PATCH_MOD_NAME="klp_tc_3_live_patch_getpid"
 klp_compile_patch_module "$PATCH_DIR" "$PATCH_MOD_NAME".c
 
