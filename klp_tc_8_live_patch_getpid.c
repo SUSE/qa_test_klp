@@ -1,7 +1,7 @@
 /*
  * live_patch_getpid - patch getpid with the same code
  *
- *  Copyright (c) 2017 SUSE
+ *  Copyright (c) 2017-2018 SUSE
  *   Author: Libor Pechacek
  */
 
@@ -64,7 +64,6 @@ static int livepatch_init(void)
 
 static void livepatch_exit(void)
 {
-        WARN_ON(klp_disable_patch(&patch));
         WARN_ON(klp_unregister_patch(&patch));
 }
 
