@@ -26,3 +26,7 @@ TC8 Patch with replace-all
 TC10 Patch caller of graph traced callee
     * Check that the reliable stacktrace implementation is able to
       discover callers of graph traced functions.
+
+TC11 Patch function sleeping in a fault
+    * Make sure that a patch to function sleeping in a fault exception
+      gets blocked.

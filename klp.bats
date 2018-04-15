@@ -23,3 +23,7 @@
 @test "Patch caller of graph traced callee" {
     ./klp_tc_10.sh
 }
+
+@test "Patch function sleeping in a fault" {
+    ./klp_tc_11.sh
+}
