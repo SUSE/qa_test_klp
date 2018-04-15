@@ -19,9 +19,7 @@
 
 #define PATCH_ID @@PATCH_ID@@
 
-#define __PATCHED_SYM(id, sym) klp_ ## id ## _ ## sym
-#define _PATCHED_SYM(id, sym) __PATCHED_SYM(id, sym)
-#define PATCHED_SYM(sym) _PATCHED_SYM(PATCH_ID, sym)
+#include "klp_test_support_mod.h"
 
 /* whether or not to identity-patch sys_getpid() */
 #define PATCH_GETPID @@PATCH_GETPID@@
@@ -41,6 +39,11 @@ static struct klp_func vmlinux_funcs[] = {
 };
 #endif /* PATCH_GETPID */
 
+static struct klp_func klp_test_support_mod_funcs[] = {
+	@@PATCH_FUNCS@@
+	{}
+};
+
 static struct klp_object objs[] = {
 #if PATCH_GETPID
 	{
@@ -48,6 +51,10 @@ static struct klp_object objs[] = {
 		.funcs = vmlinux_funcs,
 	},
 #endif /* PATCH_GETPID */
+	{
+		.name = "klp_test_support_mod",
+		.funcs = klp_test_support_mod_funcs,
+	},
 	{}
 };
 

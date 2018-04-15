@@ -17,6 +17,15 @@
 # define useful variables
 readonly SOURCE_DIR="$(dirname $0)"
 
+function __klp_add_patched_func() {
+    local PATCH_ID="$1"
+    local FUNC="$2"
+
+    echo -n "\t{\n"
+    echo -n "\t\t.old_name = \"orig_${FUNC}\",\n"
+    echo -n "\t\t.new_func = klp_${PATCH_ID}_${FUNC},\n"
+    echo -n "\t},\n"
+}
 
 # Create a livepatch source file from template
 # Parameters:
@@ -30,7 +39,9 @@ function klp_create_patch_module_src() {
     local PATCH_ID="$2"
     local PATCH_REPLACE_ALL="$3"
     shift 3
+    local OUTPUT_DIR="$(dirname $SRC_FILE)"
 
+    PATCH_FUNCS=""
     PATCH_GETPID=0
     while [ $# -gt 0 ]; do
 	local FUNC="$1"
@@ -40,6 +51,7 @@ function klp_create_patch_module_src() {
 	    PATCH_GETPID=1
 	    continue
 	fi
+	PATCH_FUNCS="${PATCH_FUNCS}$(__klp_add_patched_func $PATCH_ID $FUNC)"
     done
 
     mkdir -p "$(dirname "$SRC_FILE")"
@@ -47,6 +59,7 @@ function klp_create_patch_module_src() {
 s%@@PATCH_ID@@%$PATCH_ID%;
 s%@@PATCH_GETPID@@%$PATCH_GETPID%;
 s%@@PATCH_REPLACE_ALL@@%$PATCH_REPLACE_ALL%;
+s%@@PATCH_FUNCS@@%$PATCH_FUNCS%;
 EOF
     if [ ! -e "${SRC_FILE}" ] || \
        ! diff "${SRC_FILE}" "${SRC_FILE}.tmp" > /dev/null 2>&1; then
@@ -54,6 +67,8 @@ EOF
     else
 	rm "${SRC_FILE}.tmp"
     fi
+
+    cp -u "${SOURCE_DIR}/klp_test_support_mod.h" "${OUTPUT_DIR}/"
 }
 
 # Compile a kernel module
@@ -116,6 +131,31 @@ function klp_create_patch_module() {
     local SRC_FILE="${OUTPUT_DIR}/klp_${PATCH_ID}_livepatch.c"
     klp_create_patch_module_src "$SRC_FILE" "$PATCH_ID" "$REPLACE_ALL" "$@"
     klp_compile_module "$SRC_FILE"
+}
+
+function klp_create_test_support_module() {
+    local OUTPUT_DIR="$1"
+
+    cp -u "${SOURCE_DIR}/klp_test_support_mod.h" "${OUTPUT_DIR}/"
+    cp -u "${SOURCE_DIR}/klp_test_support_mod.c" "${OUTPUT_DIR}/"
+    klp_compile_module "${OUTPUT_DIR}/klp_test_support_mod.c"
+}
+
+function klp_prepare_test_support_module() {
+    local OUTPUT_DIR="$1"
+
+    klp_tc_milestone "Compile test support module"
+    local SUPPORT_KO="$(klp_create_test_support_module "$OUTPUT_DIR")"
+    if [ $? -ne 0 ]; then
+	return 1
+    fi
+    klp_tc_milestone "Load test support module"
+    insmod "$SUPPORT_KO"
+    if [ $? -ne 0 ]; then
+	return 1
+    fi
+
+    register_mod_for_unload "$(basename $SUPPORT_KO .ko)"
 }
 
 function klp_in_progress() {
@@ -218,9 +258,13 @@ function klp_tc_exit() {
     klp_tc_milestone "Removing patches"
 
     for P in ${MODULES_LOADED[@]}; do
-	klp_tc_milestone "Disabling and removing module $P"
-	echo 0 > /sys/kernel/livepatch/"$P"/enabled
-	klp_wait_complete 61
+	if [ -d /sys/kernel/livepatch/"$P" ]; then
+	    klp_tc_milestone "Disabling and removing module $P"
+	    echo 0 > /sys/kernel/livepatch/"$P"/enabled
+	    klp_wait_complete 61
+	else
+	    klp_tc_milestone "Removing module $P"
+	fi
 	rmmod "$P"
     done
 
