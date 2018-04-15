@@ -22,3 +22,7 @@ TC7 Test kernel live patching in low-memory condition
 
 TC8 Patch with replace-all
     * Make sure "replace-all" KLP function works as expected.
+
+TC10 Patch caller of graph traced callee
+    * Check that the reliable stacktrace implementation is able to
+      discover callers of graph traced functions.

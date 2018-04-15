@@ -20,3 +20,6 @@
     ./klp_tc_8.sh
 }
 
+@test "Patch caller of graph traced callee" {
+    ./klp_tc_10.sh
+}
