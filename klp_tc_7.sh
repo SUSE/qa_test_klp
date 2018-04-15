@@ -25,16 +25,15 @@ set -e
 klp_tc_init "Test Case 7: Patch in low memory condition"
 
 klp_tc_milestone "Compiling live patch"
-PATCH_DIR="/tmp/live-patch/tc_7"
-PATCH_MOD_NAME="klp_tc_7_live_patch_getpid"
-klp_compile_patch_module "$PATCH_DIR" "$SOURCE_DIR/$PATCH_MOD_NAME".c
+PATCH_KO="$(klp_create_patch_module tc_7 sys_getpid)"
+PATCH_MOD_NAME="$(basename "$PATCH_KO" .ko)"
 
 add_workload mem
 klp_tc_milestone "Starting workload"
 start_workload
 
 klp_tc_milestone "Inserting getpid patch"
-insmod "$PATCH_DIR/$PATCH_MOD_NAME".ko
+insmod "$PATCH_KO"
 if [ ! -e /sys/kernel/livepatch/"$PATCH_MOD_NAME" ]; then
    klp_tc_abort "don't see $PATCH_MOD_NAME in live patch sys directory"
 fi

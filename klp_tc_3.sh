@@ -24,11 +24,11 @@ set -e
 klp_tc_init "Test Case 3: Patch under pressure"
 
 klp_tc_milestone "Compiling kernel live patch"
-PATCH_DIR="/tmp/live-patch/tc_3"
-PATCH_MOD_NAME="klp_tc_3_live_patch_getpid"
-klp_compile_patch_module "$PATCH_DIR" "$PATCH_MOD_NAME".c
+PATCH_KO="$(klp_create_patch_module tc_3 sys_getpid)"
+PATCH_MOD_NAME="$(basename "$PATCH_KO" .ko)"
 
 klp_tc_milestone "Compiling call_getpid"
+PATCH_DIR="/tmp/live-patch/tc_3"
 gcc -o "$PATCH_DIR"/call_getpid "$SOURCE_DIR"/klp_tc_3-call_getpid.c
 
 klp_tc_milestone "Running call_getpid"
@@ -40,7 +40,7 @@ for i in $(seq 1 $(getconf _NPROCESSORS_ONLN)); do
 done
 
 klp_tc_milestone "Inserting getpid patch"
-insmod "$PATCH_DIR/$PATCH_MOD_NAME".ko
+insmod "$PATCH_KO"
 if [ ! -e /sys/kernel/livepatch/"$PATCH_MOD_NAME" ]; then
    klp_tc_abort "don't see $PATCH_MOD_NAME in live patch sys directory"
 fi

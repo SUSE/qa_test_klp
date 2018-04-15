@@ -27,19 +27,17 @@ N_PATCHES=15
 
 klp_tc_milestone "Compiling live patches"
 PATCH_DIR="/tmp/live-patch/tc_5"
-PATCH_MOD_NAME="klp_tc_5_live_patch_getpid"
+declare -a PATCH_KOS
 for N in $(seq 1 $N_PATCHES); do
     PATCH_SUBDIR="$PATCH_DIR/patch$N"
-    mkdir -p "$PATCH_SUBDIR"
-    cp -v "$SOURCE_DIR/$PATCH_MOD_NAME".c \
-	"$PATCH_SUBDIR/$PATCH_MOD_NAME$N".c
-    klp_compile_patch_module "$PATCH_SUBDIR" "$PATCH_SUBDIR/$PATCH_MOD_NAME$N".c
+    PATCH_KOS[$N]="$(klp_create_patch_module -o "$PATCH_SUBDIR" tc_5_$N sys_getpid)"
 done
 
 for N in $(seq 1 $N_PATCHES); do
-    PATCH_SUBDIR="$PATCH_DIR/patch$N"
     klp_tc_milestone "Inserting getpid patch $N"
-    insmod "$PATCH_SUBDIR/$PATCH_MOD_NAME$N".ko
+    PATCH_KO="${PATCH_KOS[$N]}"
+    PATCH_MOD_NAME="$(basename "$PATCH_KO" .ko)"
+    insmod "$PATCH_KO"
 
     klp_tc_milestone "Wait for completion (patch $N)"
     if ! klp_wait_complete 61; then
@@ -47,7 +45,7 @@ for N in $(seq 1 $N_PATCHES); do
 	klp_tc_abort "patching didn't finish in time (patch $N)"
     fi
 
-    register_mod_for_unload "$PATCH_MOD_NAME$N"
+    register_mod_for_unload "$PATCH_MOD_NAME"
 done
 
 # test passed if execution reached this line

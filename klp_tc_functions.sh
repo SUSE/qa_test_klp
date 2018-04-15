@@ -17,28 +17,105 @@
 # define useful variables
 readonly SOURCE_DIR="$(dirname $0)"
 
-# compile a live patch module
-# parameters: output directory, source file
-function klp_compile_patch_module() {
-    PATCH_OUTPUT_DIR="$1"
-    SOURCE_FILE="$2"
-    DEST_FILE="$PATCH_OUTPUT_DIR"/$(basename "$SOURCE_FILE")
 
-    mkdir -p "$PATCH_OUTPUT_DIR"
-    echo "obj-m += " $(basename "$SOURCE_FILE" .c)".o" \
-	> "$PATCH_OUTPUT_DIR"/Makefile
+# Create a livepatch source file from template
+# Parameters:
+#  - output file name
+#  - livepatch id
+#  - replace-all: either true or false
+#  - list of to be patched functions
+function klp_create_patch_module_src() {
+    local TEMPLATE="${SOURCE_DIR}/klp_test_livepatch.c"
+    local SRC_FILE="$1"
+    local PATCH_ID="$2"
+    local PATCH_REPLACE_ALL="$3"
+    shift 3
 
-    # detect if source and destination are the same file
-    if [ ! -e "$DEST_FILE" ] || \
-	[ $(stat -c %i "$SOURCE_FILE") -ne $(stat -c %i "$DEST_FILE") ]; then
-	cp -fv "$SOURCE_FILE" "$DEST_FILE"
+    PATCH_GETPID=0
+    while [ $# -gt 0 ]; do
+	local FUNC="$1"
+	shift
+
+	if [ x"$FUNC" == xsys_getpid ]; then
+	    PATCH_GETPID=1
+	    continue
+	fi
+    done
+
+    mkdir -p "$(dirname "$SRC_FILE")"
+    sed -f - "$TEMPLATE" > "${SRC_FILE}.tmp" <<EOF
+s%@@PATCH_ID@@%$PATCH_ID%;
+s%@@PATCH_GETPID@@%$PATCH_GETPID%;
+s%@@PATCH_REPLACE_ALL@@%$PATCH_REPLACE_ALL%;
+EOF
+    if [ ! -e "${SRC_FILE}" ] || \
+       ! diff "${SRC_FILE}" "${SRC_FILE}.tmp" > /dev/null 2>&1; then
+	mv "${SRC_FILE}.tmp" "${SRC_FILE}"
+    else
+	rm "${SRC_FILE}.tmp"
     fi
+}
+
+# Compile a kernel module
+# parameters: source file
+function klp_compile_module() {
+    local SRC_FILE="$1"
+    local OUTPUT_DIR="$(dirname "$1")"
+
+    echo "obj-m += " $(basename "$SRC_FILE" .c)".o" \
+	> "$OUTPUT_DIR"/Makefile
 
     KERN_VERSION=$(uname -r | sed 's/-[^-]*$//')
     KERN_FLAVOR=$(uname -r | sed 's/^.*-//')
     KERN_ARCH=$(uname -m)
     make -C /usr/src/linux-$KERN_VERSION-obj/$KERN_ARCH/$KERN_FLAVOR \
-	M="$PATCH_OUTPUT_DIR" O="$PATCH_OUTPUT_DIR"
+	M="$OUTPUT_DIR" O="$OUTPUT_DIR" 1>&2
+    if [ $? -ne 0 ]; then
+	return 1
+    fi
+    echo "${SRC_FILE%.c}.ko"
+}
+
+# Create a livepatch module from template
+# Parameters:
+#  - optional -r: create "replace-all" live patch
+#  - optional -o <dir>: output directory (default: /tmp/live-patch/<patch-id>)
+#  - livepatch id
+#  - list of to be patched functions
+function klp_create_patch_module() {
+    local REPLACE_ALL=false
+    local OUTPUT_DIR
+
+    local OPTIND=1
+    local OPTARG
+    local O
+    while getopts ':ro:' O; do
+	case "$O" in
+	    'r')
+		REPLACE_ALL=true
+		;;
+
+	    'o')
+		OUTPUT_DIR="$OPTARG"
+		;;
+
+	    '?')
+		echo -n "error: klp_create_patch_module: invalid parameter" 1>&2
+		echo " '$OPTARG'" 1>&2
+		return 1
+		;;
+	esac
+    done
+    shift $((OPTIND-1))
+
+    local PATCH_ID="$1"
+    shift
+
+    OUTPUT_DIR="${OUTPUT_DIR:-/tmp/live-patch/${PATCH_ID}}"
+
+    local SRC_FILE="${OUTPUT_DIR}/klp_${PATCH_ID}_livepatch.c"
+    klp_create_patch_module_src "$SRC_FILE" "$PATCH_ID" "$REPLACE_ALL" "$@"
+    klp_compile_module "$SRC_FILE"
 }
 
 function klp_in_progress() {
