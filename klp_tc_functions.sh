@@ -181,25 +181,33 @@ function klp_wait_complete() {
 }
 
 function klp_dump_blocking_processes() {
-    return 0 # until upstream receives a consistency model
-
     unset PIDS
-    echo "global live patching in_progress flag:" $(cat /sys/kernel/livepatch/in_progress)
 
-    for PROC in /proc/[0-9]*; do
-        if [ "$(cat $PROC/klp_in_progress)" -ne 0 ]; then
-	    DIR=${PROC%/klp_in_progress}
-	    PID=${DIR#/proc/}
-	    COMM="$(cat $DIR/comm)"
+    TRANSITIONING_PATCH="$(grep -l '^1$' /sys/kernel/livepatch/*/transition | head -n1)"
+    echo "transitioning patch path: \"${TRANSITIONING_PATCH%/transition}\""
 
-	    echo "$COMM ($PID) still in progress:"
-	    cat $DIR/stack
-	    echo -e '=============\n'
-	    PIDS="$PIDS $PID"
-	fi
-    done
+    if [ -n "$TRANSITIONING_PATCH" ]; then
+	TRANSITION_DIRECTION=$(cat "${TRANSITIONING_PATCH/%\/transition/\/enabled}")
+
+	for DIR in /proc/[0-9]*/task/[0-9]*; do
+	    PATCH_STATE=$(cat $DIR/patch_state 2>/dev/null)
+	    if [ -n "$PATCH_STATE" ] && [ "$PATCH_STATE" -ge 0 \
+		-a "$PATCH_STATE" -ne "$TRANSITION_DIRECTION" ]; then
+		PID=${DIR#/proc/}
+		PID=${PID%/task/*}
+		TID=${DIR#*/task/}
+		COMM="$(cat $DIR/comm)"
+
+		echo "$COMM ($PID/$TID) still in progress:"
+		cat $DIR/stack
+		echo -e '=============\n'
+		PIDS="$PIDS $PID"
+	    fi
+	done
+    fi
+
     if [ -z "$PIDS" ]; then
-        echo "no processes with klp_in_progress set"
+        echo "no threads with klp_in_progress set"
     fi
 }
 
