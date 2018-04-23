@@ -16,7 +16,7 @@
 #include <linux/compiler.h>
 #include <linux/hrtimer.h>
 #include <linux/sched.h>
-#include <linux/sched/signal.h>
+#include <linux/signal.h>
 #include <linux/debugfs.h>
 #include <asm/uaccess.h>
 
