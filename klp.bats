@@ -31,3 +31,7 @@
 @test "Patch caller of kretprobed callee" {
     ./klp_tc_12.sh
 }
+
+@test "Patch traced function" {
+    ./klp_tc_13.sh
+}

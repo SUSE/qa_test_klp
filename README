@@ -34,3 +34,7 @@ TC11 Patch function sleeping in a fault
 TC12 Patch caller of kretprobed callee
     * Check that the reliable stacktrace implementation is able to
       discover callers of functions with a kretprobe on them.
+
+TC13 Patch traced function
+    * Patch a function which is being traced and check that the live
+      patch really is in effect.
