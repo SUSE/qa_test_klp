@@ -38,3 +38,7 @@ TC12 Patch caller of kretprobed callee
 TC13 Patch traced function
     * Patch a function which is being traced and check that the live
       patch really is in effect.
+
+TC14 Trace patched function
+    * Trace a patched function and check that the live patch remains
+      in effect.

@@ -35,3 +35,7 @@
 @test "Patch traced function" {
     ./klp_tc_13.sh
 }
+
+@test "Trace patched function" {
+    ./klp_tc_14.sh
+}
