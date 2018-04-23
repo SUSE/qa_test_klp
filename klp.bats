@@ -27,3 +27,7 @@
 @test "Patch function sleeping in a fault" {
     ./klp_tc_11.sh
 }
+
+@test "Patch caller of kretprobed callee" {
+    ./klp_tc_12.sh
+}
