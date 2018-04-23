@@ -50,3 +50,8 @@ TC15 Patch graph-traced function
 TC16 Graph-trace patched function
     * Graph-trace a patched function and check that the live patch
       remains in effect.
+
+TC17 Check that patching a kprobed function fails
+    * Patch a function with a kprobe on it and check that the live
+      patch fails to load: kprobes' and live patching ftrace_ops both
+      have FTRACE_OPS_FL_IPMODIFY set.

@@ -47,3 +47,7 @@
 @test "Graph-trace patched function" {
     ./klp_tc_16.sh
 }
+
+@test "Check that patching a kprobed function fails" {
+    ./klp_tc_17.sh
+}
