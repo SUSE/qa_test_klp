@@ -42,3 +42,7 @@ TC13 Patch traced function
 TC14 Trace patched function
     * Trace a patched function and check that the live patch remains
       in effect.
+
+TC15 Patch graph-traced function
+    * Patch a function which is being graph-traced and check that the
+      live patch really is in effect.
