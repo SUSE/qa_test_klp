@@ -67,6 +67,7 @@ static struct klp_patch patch = {
 
 static int livepatch_init(void)
 {
+#ifndef KLP_NOREG_API
 	int ret;
 
 	ret = klp_register_patch(&patch);
@@ -78,11 +79,16 @@ static int livepatch_init(void)
 		return ret;
 	}
 	return 0;
+#else
+	return klp_enable_patch(&patch);
+#endif
 }
 
 static void livepatch_exit(void)
 {
+#ifndef KLP_NOREG_API
 	WARN_ON(klp_unregister_patch(&patch));
+#endif
 }
 
 module_init(livepatch_init);
