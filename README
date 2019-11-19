@@ -17,8 +17,7 @@ TC6 Patch while CPUs are busy
 TC7 Test kernel live patching in low-memory condition
     * Run a workload that will bring the system close to OOM and then start
       patching.
-    * Requires hiworkload from a closed SUSE repository. TODO - replace 
-      hiworkload with an opensource alternative.
+    * Requires hiworkload (needs to be compiled).
 
 TC8 Patch with replace-all
     * Make sure "replace-all" KLP function works as expected.
