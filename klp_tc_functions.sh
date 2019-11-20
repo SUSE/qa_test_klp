@@ -84,7 +84,7 @@ function klp_compile_module() {
     KERN_FLAVOR=$(uname -r | sed 's/^.*-//')
     KERN_ARCH=$(uname -m)
     make -C /usr/src/linux-$KERN_VERSION-obj/$KERN_ARCH/$KERN_FLAVOR \
-	M="$OUTPUT_DIR" O="$OUTPUT_DIR" 1>&2
+        M="$OUTPUT_DIR" modules 1>&2
     if [ $? -ne 0 ]; then
 	return 1
     fi
