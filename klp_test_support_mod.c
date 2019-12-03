@@ -50,7 +50,6 @@ struct active_probe
 	enum active_probe_type
 	{
 		apt_kprobe,
-		apt_jprobe,
 		apt_kretprobe,
 	} type;
 
@@ -59,7 +58,6 @@ struct active_probe
 	union
 	{
 		struct kprobe kp;
-		struct jprobe jp;
 		struct kretprobe rp;
 	} p;
 };
@@ -69,9 +67,6 @@ static inline struct kprobe *active_probe_kprobe(struct active_probe *a)
 	switch (a->type) {
 	case apt_kprobe:
 		return &a->p.kp;
-
-	case apt_jprobe:
-		return &a->p.jp.kp;
 
 	case apt_kretprobe:
 		return &a->p.rp.kp;
@@ -106,10 +101,6 @@ static struct active_probe *alloc_active_probe(const char *symbol_name,
 		a->p.kp.symbol_name = s;
 		break;
 
-	case apt_jprobe:
-		a->p.jp.kp.symbol_name = s;
-		break;
-
 	case apt_kretprobe:
 		a->p.rp.kp.symbol_name = s;
 		break;
@@ -130,10 +121,6 @@ static void __remove_probe(struct active_probe *a)
 	switch (a->type) {
 	case apt_kprobe:
 		unregister_kprobe(&a->p.kp);
-		break;
-
-	case apt_jprobe:
-		unregister_jprobe(&a->p.jp);
 		break;
 
 	case apt_kretprobe:
@@ -251,63 +238,6 @@ static const struct file_operations fops_add_kprobe = {
 	.llseek = no_llseek,
 };
 
-static void jp_handler(void)
-{
-	jprobe_return();
-}
-
-static int do_add_jprobe(const char *symbol_name)
-{
-	struct active_probe *a;
-	int r;
-
-	a = alloc_active_probe(symbol_name, apt_jprobe);
-	if (!a)
-		return -ENOMEM;
-
-	a->p.jp.entry = jp_handler;
-
-	r = register_jprobe(&a->p.jp);
-	if (!r) {
-		mutex_lock(&active_probes_mutex);
-		list_add_tail(&a->list, &active_probes);
-		mutex_unlock(&active_probes_mutex);
-	} else {
-		free_active_probe(a);
-	}
-
-	return r;
-}
-
-static ssize_t add_jprobe_write(struct file *file, const char __user *buf,
-				size_t len, loff_t *ppos)
-{
-	int ret;
-	char *s;
-
-	s = kmalloc(len + 1, GFP_KERNEL);
-	if (!s)
-		return -ENOMEM;
-
-	if (copy_from_user(s, buf, len)) {
-		kfree(s);
-		return -EFAULT;
-	}
-	s[len] = '\0';
-
-	ret = do_add_jprobe(s);
-
-	kfree(s);
-	return ret ? ret : len;
-}
-
-static const struct file_operations fops_add_jprobe = {
-	.owner = THIS_MODULE,
-	.open = nonseekable_open,
-	.write = add_jprobe_write,
-	.llseek = no_llseek,
-};
-
 static int rp_handler(struct kretprobe_instance *ri, struct pt_regs *regs)
 {
 	return 0;
@@ -377,10 +307,6 @@ static int active_probes_show(struct seq_file *s, void *p)
 		switch (a->type) {
 		case apt_kprobe:
 			type = "kprobe";
-			break;
-
-		case apt_jprobe:
-			type = "jprobe";
 			break;
 
 		case apt_kretprobe:
@@ -458,12 +384,6 @@ static int test_support_mod_init(void)
 	d = debugfs_create_file_unsafe("add_kprobe",
 				       S_IWUSR, debugfs_dir, NULL,
 				       &fops_add_kprobe);
-	if (IS_ERR(d))
-		goto err;
-
-	d = debugfs_create_file_unsafe("add_jprobe",
-				       S_IWUSR, debugfs_dir, NULL,
-				       &fops_add_jprobe);
 	if (IS_ERR(d))
 		goto err;
 
