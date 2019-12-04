@@ -287,3 +287,13 @@ function klp_tc_abort() {
     klp_tc_write "TEST CASE ABORT" "$*"
     exit 1
 }
+
+# detect environment settings
+KLP_ENV_CACHE_FILE=/tmp/live-patch/klp_env_cache
+if [ ! -f $KLP_ENV_CACHE_FILE ]; then
+    mkdir -p $(dirname $KLP_ENV_CACHE_FILE)
+
+    # environment detection check will go here
+    touch $KLP_ENV_CACHE_FILE
+fi
+. $KLP_ENV_CACHE_FILE
