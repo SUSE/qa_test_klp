@@ -68,7 +68,9 @@ EOF
 	rm "${SRC_FILE}.tmp"
     fi
 
-    cp -u "${SOURCE_DIR}/klp_test_support_mod.h" "${OUTPUT_DIR}/"
+    sed "s%@@USE_OLD_HRTIMER_API@@%$KLP_TEST_HRTIMER_OLD%" \
+	    "${SOURCE_DIR}/klp_test_support_mod.h" \
+	    > "${OUTPUT_DIR}/klp_test_support_mod.h"
 }
 
 # Compile a kernel module
@@ -136,7 +138,9 @@ function klp_create_patch_module() {
 function klp_create_test_support_module() {
     local OUTPUT_DIR="$1"
 
-    cp -u "${SOURCE_DIR}/klp_test_support_mod.h" "${OUTPUT_DIR}/"
+    sed "s%@@USE_OLD_HRTIMER_API@@%$KLP_TEST_HRTIMER_OLD%" \
+	    "${SOURCE_DIR}/klp_test_support_mod.h" \
+	    > "${OUTPUT_DIR}/klp_test_support_mod.h"
     cp -u "${SOURCE_DIR}/klp_test_support_mod.c" "${OUTPUT_DIR}/"
     klp_compile_module "${OUTPUT_DIR}/klp_test_support_mod.c"
 }
@@ -293,7 +297,17 @@ KLP_ENV_CACHE_FILE=/tmp/live-patch/klp_env_cache
 if [ ! -f $KLP_ENV_CACHE_FILE ]; then
     mkdir -p $(dirname $KLP_ENV_CACHE_FILE)
 
-    # environment detection check will go here
-    touch $KLP_ENV_CACHE_FILE
+    # compile-test for hrtimer API ()
+    COMPILETEST_DIR=/tmp/live-patch/klp_compile_test
+    mkdir -p $COMPILETEST_DIR
+    cp "$SOURCE_DIR"/klp_compile_test_hrtimer.c $COMPILETEST_DIR/
+
+    echo -n 'export KLP_TEST_HRTIMER_OLD=' > $KLP_ENV_CACHE_FILE
+    if klp_compile_module $COMPILETEST_DIR/klp_compile_test_hrtimer.c > /dev/null 2>&1;
+    then
+        echo "1" >> $KLP_ENV_CACHE_FILE
+    else
+        echo "0" >> $KLP_ENV_CACHE_FILE
+    fi
 fi
 . $KLP_ENV_CACHE_FILE

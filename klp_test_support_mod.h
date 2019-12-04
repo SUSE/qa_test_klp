@@ -20,6 +20,7 @@
 #include <linux/debugfs.h>
 #include <asm/uaccess.h>
 
+#define USE_OLD_HRTIMER_API @@USE_OLD_HRTIMER_API@@
 
 #if defined(PATCH_ID)
 #define __PATCHED_SYM(id, sym) klp_ ## id ## _ ## sym
@@ -123,9 +124,16 @@ int PATCHED_SYM(do_sleep)(unsigned long secs, int task_state)
 {
 	struct hrtimer_sleeper t;
 
+	/* code duplication is intentional for the sake of limiting the number
+	 * of #ifdef's */
+#if USE_OLD_HRTIMER_API
 	hrtimer_init_on_stack(&t.timer, CLOCK_MONOTONIC, HRTIMER_MODE_REL);
 	hrtimer_set_expires_range_ns(&t.timer, ktime_set(secs, 0), 0);
 	hrtimer_init_sleeper(&t, current);
+#else
+	hrtimer_init_sleeper_on_stack(&t, CLOCK_MONOTONIC, HRTIMER_MODE_REL);
+	hrtimer_set_expires_range_ns(&t.timer, ktime_set(secs, 0), 0);
+#endif
 
 	set_current_state(task_state);
 	hrtimer_start_expires(&t.timer, HRTIMER_MODE_REL);
