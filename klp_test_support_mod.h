@@ -1,7 +1,7 @@
 /*
  * klp_test_support_mod - support module for KLP testing
  *
- *  Copyright (c) 2018 SUSE
+ *  Copyright (c) 2018-2019 SUSE
  *   Author: Nicolai Stange
  *
  * This program is free software; you can redistribute it and/or modify it
