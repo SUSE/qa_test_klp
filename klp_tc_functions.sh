@@ -47,7 +47,7 @@ function klp_create_patch_module_src() {
 	local FUNC="$1"
 	shift
 
-	if [ x"$FUNC" == xsys_getpid ]; then
+	if [ x"$FUNC" == x${KLP_TEST_SYSCALL_FN_PREFIX}sys_getpid ]; then
 	    PATCH_GETPID=1
 	    continue
 	fi
@@ -58,6 +58,7 @@ function klp_create_patch_module_src() {
     sed -f - "$TEMPLATE" > "${SRC_FILE}.tmp" <<EOF
 s%@@PATCH_ID@@%$PATCH_ID%;
 s%@@PATCH_GETPID@@%$PATCH_GETPID%;
+s%@@SYSCALL_FN_PREFIX@@%$KLP_TEST_SYSCALL_FN_PREFIX%;
 s%@@PATCH_REPLACE_ALL@@%$PATCH_REPLACE_ALL%;
 s%@@PATCH_FUNCS@@%$PATCH_FUNCS%;
 EOF
@@ -68,7 +69,9 @@ EOF
 	rm "${SRC_FILE}.tmp"
     fi
 
-    cp -u "${SOURCE_DIR}/klp_test_support_mod.h" "${OUTPUT_DIR}/"
+    sed "s%@@USE_OLD_HRTIMER_API@@%$KLP_TEST_HRTIMER_OLD%" \
+	    "${SOURCE_DIR}/klp_test_support_mod.h" \
+	    > "${OUTPUT_DIR}/klp_test_support_mod.h"
 }
 
 # Compile a kernel module
@@ -84,7 +87,7 @@ function klp_compile_module() {
     KERN_FLAVOR=$(uname -r | sed 's/^.*-//')
     KERN_ARCH=$(uname -m)
     make -C /usr/src/linux-$KERN_VERSION-obj/$KERN_ARCH/$KERN_FLAVOR \
-	M="$OUTPUT_DIR" O="$OUTPUT_DIR" 1>&2
+        M="$OUTPUT_DIR" modules 1>&2
     if [ $? -ne 0 ]; then
 	return 1
     fi
@@ -136,7 +139,9 @@ function klp_create_patch_module() {
 function klp_create_test_support_module() {
     local OUTPUT_DIR="$1"
 
-    cp -u "${SOURCE_DIR}/klp_test_support_mod.h" "${OUTPUT_DIR}/"
+    sed "s%@@USE_OLD_HRTIMER_API@@%$KLP_TEST_HRTIMER_OLD%" \
+	    "${SOURCE_DIR}/klp_test_support_mod.h" \
+	    > "${OUTPUT_DIR}/klp_test_support_mod.h"
     cp -u "${SOURCE_DIR}/klp_test_support_mod.c" "${OUTPUT_DIR}/"
     klp_compile_module "${OUTPUT_DIR}/klp_test_support_mod.c"
 }
@@ -287,3 +292,44 @@ function klp_tc_abort() {
     klp_tc_write "TEST CASE ABORT" "$*"
     exit 1
 }
+
+# detect environment settings
+KLP_ENV_CACHE_FILE=/tmp/live-patch/klp_env_cache
+if [ ! -f $KLP_ENV_CACHE_FILE ]; then
+    mkdir -p $(dirname $KLP_ENV_CACHE_FILE)
+
+    # compile-test for hrtimer API ()
+    COMPILETEST_DIR=/tmp/live-patch/klp_compile_test
+    mkdir -p $COMPILETEST_DIR
+    cp "$SOURCE_DIR"/klp_compile_test_hrtimer.c $COMPILETEST_DIR/
+
+    echo -n 'export KLP_TEST_HRTIMER_OLD=' > $KLP_ENV_CACHE_FILE
+    if klp_compile_module $COMPILETEST_DIR/klp_compile_test_hrtimer.c > /dev/null 2>&1;
+    then
+        echo "1" >> $KLP_ENV_CACHE_FILE
+    else
+        echo "0" >> $KLP_ENV_CACHE_FILE
+    fi
+
+    # Check for getpid syscall prefix
+    echo -n 'export KLP_TEST_SYSCALL_FN_PREFIX=' >> $KLP_ENV_CACHE_FILE
+
+    # generate LINUX_VERSION_CODE from `uname -r`
+    mapfile -d. -t VERSION_PARTS < <(uname -r | cut -d- -f1 )
+    VERSION_CODE=$(((VERSION_PARTS[0]<<16) + (VERSION_PARTS[1]<<8) + VERSION_PARTS[2]))
+
+    if [ "$VERSION_CODE" -ge 266496 ] # test for kernel 4.17.0 and newer
+    then
+        case $(uname -m) in
+            x86_64) echo "__x64_" >> $KLP_ENV_CACHE_FILE
+                ;;
+            s390x) echo "__s390x_" >> $KLP_ENV_CACHE_FILE
+                ;;
+            *) echo >> $KLP_ENV_CACHE_FILE
+                ;;
+        esac
+    else
+        echo >> $KLP_ENV_CACHE_FILE
+    fi
+fi
+. $KLP_ENV_CACHE_FILE

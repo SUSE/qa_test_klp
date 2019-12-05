@@ -26,7 +26,7 @@ set -e
 klp_tc_init "Test Case 6: Patch while CPUs are busy"
 
 klp_tc_milestone "Compiling live patch"
-PATCH_KO="$(klp_create_patch_module tc_6 sys_getpid)"
+PATCH_KO="$(klp_create_patch_module tc_6 ${KLP_TEST_SYSCALL_FN_PREFIX}sys_getpid)"
 PATCH_MOD_NAME="$(basename "$PATCH_KO" .ko)"
 
 add_workload cpu

@@ -30,7 +30,7 @@ PATCH_DIR="/tmp/live-patch/tc_5"
 declare -a PATCH_KOS
 for N in $(seq 1 $N_PATCHES); do
     PATCH_SUBDIR="$PATCH_DIR/patch$N"
-    PATCH_KOS[$N]="$(klp_create_patch_module -o "$PATCH_SUBDIR" tc_5_$N sys_getpid)"
+    PATCH_KOS[$N]="$(klp_create_patch_module -o "$PATCH_SUBDIR" tc_5_$N ${KLP_TEST_SYSCALL_FN_PREFIX}sys_getpid)"
 done
 
 for N in $(seq 1 $N_PATCHES); do

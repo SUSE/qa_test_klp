@@ -25,15 +25,15 @@
 #define PATCH_GETPID @@PATCH_GETPID@@
 
 #if PATCH_GETPID
-asmlinkage long PATCHED_SYM(sys_getpid)(void)
+asmlinkage long PATCHED_SYM(@@SYSCALL_FN_PREFIX@@sys_getpid)(void)
 {
 	return task_tgid_vnr(current);
 }
 
 static struct klp_func vmlinux_funcs[] = {
 	{
-		.old_name = "sys_getpid",
-		.new_func = PATCHED_SYM(sys_getpid),
+		.old_name = "@@SYSCALL_FN_PREFIX@@sys_getpid",
+		.new_func = PATCHED_SYM(@@SYSCALL_FN_PREFIX@@sys_getpid),
 	},
 	{}
 };

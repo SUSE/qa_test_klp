@@ -24,7 +24,7 @@ set -e
 klp_tc_init "Test Case 3: Patch under pressure"
 
 klp_tc_milestone "Compiling kernel live patch"
-PATCH_KO="$(klp_create_patch_module tc_3 sys_getpid)"
+PATCH_KO="$(klp_create_patch_module tc_3 ${KLP_TEST_SYSCALL_FN_PREFIX}sys_getpid)"
 PATCH_MOD_NAME="$(basename "$PATCH_KO" .ko)"
 
 klp_tc_milestone "Compiling call_getpid"
