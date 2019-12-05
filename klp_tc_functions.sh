@@ -47,7 +47,7 @@ function klp_create_patch_module_src() {
 	local FUNC="$1"
 	shift
 
-	if [ x"$FUNC" == xsys_getpid ]; then
+	if [ x"$FUNC" == x${KLP_TEST_SYSCALL_FN_PREFIX}sys_getpid ]; then
 	    PATCH_GETPID=1
 	    continue
 	fi
@@ -58,6 +58,7 @@ function klp_create_patch_module_src() {
     sed -f - "$TEMPLATE" > "${SRC_FILE}.tmp" <<EOF
 s%@@PATCH_ID@@%$PATCH_ID%;
 s%@@PATCH_GETPID@@%$PATCH_GETPID%;
+s%@@SYSCALL_FN_PREFIX@@%$KLP_TEST_SYSCALL_FN_PREFIX%;
 s%@@PATCH_REPLACE_ALL@@%$PATCH_REPLACE_ALL%;
 s%@@PATCH_FUNCS@@%$PATCH_FUNCS%;
 EOF
@@ -308,6 +309,27 @@ if [ ! -f $KLP_ENV_CACHE_FILE ]; then
         echo "1" >> $KLP_ENV_CACHE_FILE
     else
         echo "0" >> $KLP_ENV_CACHE_FILE
+    fi
+
+    # Check for getpid syscall prefix
+    echo -n 'export KLP_TEST_SYSCALL_FN_PREFIX=' >> $KLP_ENV_CACHE_FILE
+
+    # generate LINUX_VERSION_CODE from `uname -r`
+    mapfile -d. -t VERSION_PARTS < <(uname -r | cut -d- -f1 )
+    VERSION_CODE=$(((VERSION_PARTS[0]<<16) + (VERSION_PARTS[1]<<8) + VERSION_PARTS[2]))
+
+    if [ "$VERSION_CODE" -ge 266496 ] # test for kernel 4.17.0 and newer
+    then
+        case $(uname -m) in
+            x86_64) echo "__x64_" >> $KLP_ENV_CACHE_FILE
+                ;;
+            s390x) echo "__s390x_" >> $KLP_ENV_CACHE_FILE
+                ;;
+            *) echo >> $KLP_ENV_CACHE_FILE
+                ;;
+        esac
+    else
+        echo >> $KLP_ENV_CACHE_FILE
     fi
 fi
 . $KLP_ENV_CACHE_FILE
