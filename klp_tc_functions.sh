@@ -27,6 +27,12 @@ function __klp_add_patched_func() {
     echo -n "\t},\n"
 }
 
+function klp_create_header() {
+    sed "s%@@USE_OLD_HRTIMER_API@@%$KLP_TEST_HRTIMER_OLD%" \
+	    "${SOURCE_DIR}/klp_test_support_mod.h" \
+	    > "${OUTPUT_DIR}/klp_test_support_mod.h"
+}
+
 # Create a livepatch source file from template
 # Parameters:
 #  - output file name
@@ -69,9 +75,7 @@ EOF
 	rm "${SRC_FILE}.tmp"
     fi
 
-    sed "s%@@USE_OLD_HRTIMER_API@@%$KLP_TEST_HRTIMER_OLD%" \
-	    "${SOURCE_DIR}/klp_test_support_mod.h" \
-	    > "${OUTPUT_DIR}/klp_test_support_mod.h"
+    klp_create_header
 }
 
 # Compile a kernel module
@@ -136,9 +140,8 @@ function klp_create_patch_module() {
 function klp_create_test_support_module() {
     local OUTPUT_DIR="$1"
 
-    sed "s%@@USE_OLD_HRTIMER_API@@%$KLP_TEST_HRTIMER_OLD%" \
-	    "${SOURCE_DIR}/klp_test_support_mod.h" \
-	    > "${OUTPUT_DIR}/klp_test_support_mod.h"
+    klp_create_header
+
     cp -u "${SOURCE_DIR}/klp_test_support_mod.c" "${OUTPUT_DIR}/"
     klp_compile_module "${OUTPUT_DIR}/klp_test_support_mod.c"
 }
