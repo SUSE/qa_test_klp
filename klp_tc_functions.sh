@@ -83,10 +83,7 @@ function klp_compile_module() {
     echo "obj-m += " $(basename "$SRC_FILE" .c)".o" \
 	> "$OUTPUT_DIR"/Makefile
 
-    KERN_VERSION=$(uname -r | sed 's/-[^-]*$//')
-    KERN_FLAVOR=$(uname -r | sed 's/^.*-//')
-    KERN_ARCH=$(uname -m)
-    make -C /usr/src/linux-$KERN_VERSION-obj/$KERN_ARCH/$KERN_FLAVOR \
+    make -C /lib/modules/$(uname -r)/build \
         M="$OUTPUT_DIR" modules 1>&2
     if [ $? -ne 0 ]; then
 	return 1
