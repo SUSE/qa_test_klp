@@ -315,8 +315,11 @@ if [ ! -f $KLP_ENV_CACHE_FILE ]; then
     echo -n 'export KLP_TEST_SYSCALL_FN_PREFIX=' >> $KLP_ENV_CACHE_FILE
 
     # generate LINUX_VERSION_CODE from `uname -r`
-    mapfile -t VERSION_PARTS < <(uname -r | cut -d- -f1 | tr . ' ')
-    VERSION_CODE=$(((VERSION_PARTS[0]<<16) + (VERSION_PARTS[1]<<8) + VERSION_PARTS[2]))
+    KVER="$(uname -r | cut -d- -f1)"
+    PART1="$(echo $KVER | cut -d. -f1)"
+    PART2="$(echo $KVER | cut -d. -f2)"
+    PART3="$(echo $KVER | cut -d. -f3)"
+    VERSION_CODE=$(((PART1 <<16) + (PART2 <<8) + PART3))
 
     if [ "$VERSION_CODE" -ge 266496 ] # test for kernel 4.17.0 and newer
     then
