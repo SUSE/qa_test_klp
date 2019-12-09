@@ -1,7 +1,7 @@
 /*
  * klp_test_livepatch - test livepatch template
  *
- *  Copyright (c) 2017-2018 SUSE
+ *  Copyright (c) 2017-2019 SUSE
  *   Authors: Libor Pechacek, Nicolai Stange
  */
 
@@ -23,6 +23,8 @@
 
 /* whether or not to identity-patch sys_getpid() */
 #define PATCH_GETPID @@PATCH_GETPID@@
+
+#define USE_OLD_REG_API @@USE_OLD_REG_API@@
 
 #if PATCH_GETPID
 asmlinkage long PATCHED_SYM(@@SYSCALL_FN_PREFIX@@sys_getpid)(void)
@@ -67,7 +69,7 @@ static struct klp_patch patch = {
 
 static int livepatch_init(void)
 {
-#ifndef KLP_NOREG_API
+#if USE_OLD_REG_API
 	int ret;
 
 	ret = klp_register_patch(&patch);
@@ -81,14 +83,14 @@ static int livepatch_init(void)
 	return 0;
 #else
 	return klp_enable_patch(&patch);
-#endif
+#endif /* USE_OLD_REG_API */
 }
 
 static void livepatch_exit(void)
 {
-#ifndef KLP_NOREG_API
+#if USE_OLD_REG_API
 	WARN_ON(klp_unregister_patch(&patch));
-#endif
+#endif /* USE_OLD_REG_API */
 }
 
 module_init(livepatch_init);

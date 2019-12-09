@@ -67,6 +67,7 @@ s%@@PATCH_GETPID@@%$PATCH_GETPID%;
 s%@@SYSCALL_FN_PREFIX@@%$KLP_TEST_SYSCALL_FN_PREFIX%;
 s%@@PATCH_REPLACE_ALL@@%$PATCH_REPLACE_ALL%;
 s%@@PATCH_FUNCS@@%$PATCH_FUNCS%;
+s%@@USE_OLD_REG_API@@%$KLP_TEST_USE_OLD_REG_API%;
 EOF
     if [ ! -e "${SRC_FILE}" ] || \
        ! diff "${SRC_FILE}" "${SRC_FILE}.tmp" > /dev/null 2>&1; then
@@ -334,5 +335,10 @@ if [ ! -f $KLP_ENV_CACHE_FILE ]; then
     else
         echo >> $KLP_ENV_CACHE_FILE
     fi
+
+    # Decide whether to use simplified KLP API (kernel commit 958ef1e39d24)
+    # based on presence of an obsolete API function
+    echo -n 'export KLP_TEST_USE_OLD_REG_API=' >> $KLP_ENV_CACHE_FILE
+    ( grep -q 'T klp_register_patch$' /proc/kallsyms && echo "1" || echo "0" ) >> $KLP_ENV_CACHE_FILE
 fi
 . $KLP_ENV_CACHE_FILE
