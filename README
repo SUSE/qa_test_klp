@@ -54,3 +54,24 @@ TC17 Check that patching a kprobed function fails
     * Patch a function with a kprobe on it and check that the live
       patch fails to load: kprobes' and live patching ftrace_ops both
       have FTRACE_OPS_FL_IPMODIFY set.
+
+Supported platforms
+-------------------
+
+This test suite is supported and regularly tested on:
+
+* SUSE Linux Enterprise 12 SP4 and newer
+* SUSE Linux Enterprise 15 GA and newer
+* openSUSE Tumbleweed
+
+Following distros are supported in the sense that there is intention to allow
+running qa_test_klp on them but there may be no regular testing done on these
+distros. If anything is broken in this area, we welcome bug reports and
+patches.
+
+* Debian 10 and newer
+* Fedora 31 and newer
+* openSUSE Leap 15.1 and newer
+
+Supported hardware architectures include **x86_64/amd64**, **ppc64le** and
+**s390x**.
