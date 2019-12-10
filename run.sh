@@ -35,17 +35,25 @@ IFS="
 for i in $TESTS; do
     file=$(echo $i | cut -d'|' -f1)
     desc=$(echo $i | cut -d'|' -f2)
+    cond=$(echo $i | cut -d'|' -f3)
+
+    [ -z "$cond" ] && cond=true
 
     if [ "$bats" ]; then
         cat >> $script <<EOF
 @test "$desc" {
+    $cond || skip
     ./$file
 }
 EOF
     else
         cat >> $script <<EOF
 echo "== $desc =="
-./$file || ret=1
+if $cond; then
+    ./$file || ret=1
+else
+    echo "skipped"
+fi
 echo
 EOF
     fi
