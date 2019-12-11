@@ -15,7 +15,7 @@ klp_tc_13.sh|Patch traced function
 klp_tc_14.sh|Trace patched function
 klp_tc_15.sh|Patch graph-traced function
 klp_tc_16.sh|Graph-trace patched function
-klp_tc_17.sh|Check that patching a kprobed function fails
+klp_tc_17.sh|Check that patching a kprobed function fails|[ \"$(uname -m)\" != s390x ]
 "
 
 bats=$(which bats 2>/dev/null)
@@ -35,17 +35,25 @@ IFS="
 for i in $TESTS; do
     file=$(echo $i | cut -d'|' -f1)
     desc=$(echo $i | cut -d'|' -f2)
+    cond=$(echo $i | cut -d'|' -f3)
+
+    [ -z "$cond" ] && cond=true
 
     if [ "$bats" ]; then
         cat >> $script <<EOF
 @test "$desc" {
+    $cond || skip
     ./$file
 }
 EOF
     else
         cat >> $script <<EOF
 echo "== $desc =="
-./$file || ret=1
+if $cond; then
+    ./$file || ret=1
+else
+    echo "skipped"
+fi
 echo
 EOF
     fi
