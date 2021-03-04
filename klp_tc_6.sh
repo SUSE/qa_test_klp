@@ -41,7 +41,7 @@ fi
 register_mod_for_unload "$PATCH_MOD_NAME"
 
 klp_tc_milestone "Wait for completion"
-if ! klp_wait_complete 61; then
+if ! klp_wait_complete "$PATCH_MOD_NAME" 61; then
     klp_dump_blocking_processes
     klp_tc_abort "patching didn't finish in time"
 fi

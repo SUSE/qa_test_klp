@@ -172,8 +172,10 @@ function klp_in_progress() {
 }
 
 function klp_wait_complete() {
-    if [ $# -gt 0 ]; then
-        TIMEOUT=$1
+    local PATCH_MOD_NAME="$1"
+
+    if [ $# -gt 1 ]; then
+        TIMEOUT=$2
     else
         TIMEOUT=-1
     fi
@@ -183,7 +185,24 @@ function klp_wait_complete() {
         (( TIMEOUT-- )) || true
     done
 
-    ! klp_in_progress
+    if klp_in_progress; then
+        return 1
+    fi
+
+    # See if the livepatch in question had been disabled and wait for
+    # the module's reference count to drop asynchronously to zero if
+    # so.
+    if [ 0"$(cat "/sys/kernel/livepatch/$PATCH_MOD_NAME/enabled" 2> /dev/null)" -ne 0 ]; then
+        return 0
+    fi
+
+    while [ 0"$(cat "/sys/module/$PATCH_MOD_NAME/refcnt")" -ne 0 -a \
+             $TIMEOUT -ne 0 ]; do
+        sleep 1
+        (( TIMEOUT-- )) || true
+    done
+
+    [ 0"$(cat "/sys/module/$PATCH_MOD_NAME/refcnt")" -eq 0 ]
 }
 
 function klp_dump_blocking_processes() {
@@ -275,7 +294,7 @@ function klp_tc_exit() {
 	if [ -d /sys/kernel/livepatch/"$P" ]; then
 	    klp_tc_milestone "Disabling and removing module $P"
 	    echo 0 > /sys/kernel/livepatch/"$P"/enabled
-	    if ! klp_wait_complete 61; then
+	    if ! klp_wait_complete "$P" 61; then
 		klp_dump_blocking_processes
 		klp_tc_abort "module deactivation didn't finish in time"
 	    fi
