@@ -275,11 +275,17 @@ function klp_tc_exit() {
 	if [ -d /sys/kernel/livepatch/"$P" ]; then
 	    klp_tc_milestone "Disabling and removing module $P"
 	    echo 0 > /sys/kernel/livepatch/"$P"/enabled
-	    klp_wait_complete 61
+	    if ! klp_wait_complete 61; then
+		klp_dump_blocking_processes
+		klp_tc_abort "module deactivation didn't finish in time"
+	    fi
 	else
 	    klp_tc_milestone "Removing module $P"
 	fi
-	rmmod "$P"
+	if ! rmmod "$P"; then
+		dmesg | tail -30
+		klp_tc_abort "module removal failed"
+	fi
     done
 
     klp_tc_milestone "TEST PASSED"
