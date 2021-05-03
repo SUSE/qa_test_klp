@@ -37,7 +37,7 @@ static const char livepatch_id[] = __stringify(PATCH_ID) "\n";
 static const char livepatch_id[] = "none\n";
 #endif
 
-static noinline __maybe_unused
+static noinline __used
 void PATCHED_SYM(__make_stackframe_valid)(void)
 {
 	static volatile int dummy;
@@ -45,7 +45,7 @@ void PATCHED_SYM(__make_stackframe_valid)(void)
 	asm volatile ("" : "=r" (dummy));
 }
 
-static noinline __maybe_unused
+static noinline __used
 void PATCHED_SYM(make_stackframe_valid)(void)
 {
 	/*
@@ -67,7 +67,7 @@ void PATCHED_SYM(make_stackframe_valid)(void)
 	asm volatile ("" : "=r" (dummy));
 }
 
-static noinline __maybe_unused
+static noinline __used
 const size_t PATCHED_SYM(do_read_active_livepatch_id)(char __user *to,
 						      loff_t pos,
 						      size_t count)
@@ -88,7 +88,7 @@ const size_t PATCHED_SYM(do_read_active_livepatch_id)(char __user *to,
 	return 0;
 }
 
-static noinline __maybe_unused
+static noinline __used
 ssize_t PATCHED_SYM(active_livepatch_id_read)(struct file *file,
 					      char __user *user_buf,
 					      size_t count,
@@ -119,7 +119,7 @@ ssize_t PATCHED_SYM(active_livepatch_id_read)(struct file *file,
 	return count;
 }
 
-static noinline __maybe_unused
+static noinline __used
 int PATCHED_SYM(do_sleep)(unsigned long secs, int task_state)
 {
 	struct hrtimer_sleeper t;
@@ -151,14 +151,14 @@ int PATCHED_SYM(do_sleep)(unsigned long secs, int task_state)
 	return !!t.task;
 }
 
-static noinline __maybe_unused
+static noinline __used
 int PATCHED_SYM(sleep_interruptible_set)(void *data, u64 val)
 {
 	PATCHED_SYM(do_sleep)((unsigned long)val, TASK_INTERRUPTIBLE);
 	return 0;
 }
 
-static noinline __maybe_unused
+static noinline __used
 int PATCHED_SYM(sleep_uninterruptible_set)(void *data, u64 val)
 {
 	PATCHED_SYM(do_sleep)((unsigned long)val, TASK_UNINTERRUPTIBLE);
@@ -166,7 +166,7 @@ int PATCHED_SYM(sleep_uninterruptible_set)(void *data, u64 val)
 }
 
 
-static noinline __maybe_unused
+static noinline __used
 int PATCHED_SYM(do_hog_cpu)(unsigned long secs, bool interruptible)
 {
 	const ktime_t end = ktime_add(ktime_get(), ktime_set(secs, 0));
@@ -180,14 +180,14 @@ int PATCHED_SYM(do_hog_cpu)(unsigned long secs, bool interruptible)
 	return 0;
 }
 
-static noinline __maybe_unused
+static noinline __used
 int PATCHED_SYM(hog_cpu_interruptible_set)(void *data, u64 val)
 {
 	PATCHED_SYM(do_hog_cpu)((unsigned long)val, true);
 	return 0;
 }
 
-static noinline __maybe_unused
+static noinline __used
 int PATCHED_SYM(hog_cpu_uninterruptible_set)(void *data, u64 val)
 {
 	PATCHED_SYM(do_hog_cpu)((unsigned long)val, false);

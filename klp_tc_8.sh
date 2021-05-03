@@ -40,7 +40,7 @@ for N in $(seq 1 $N_PATCHES); do
     insmod "$PATCH_KO"
 
     klp_tc_milestone "Wait for completion ($PATCH_MOD_NAME)"
-    if ! klp_wait_complete 61; then
+    if ! klp_wait_complete "$PATCH_MOD_NAME" 61; then
         klp_dump_blocking_processes
         klp_tc_abort "patching didn't finish in time ($PATCH_MOD_NAME)"
     fi

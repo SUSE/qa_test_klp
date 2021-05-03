@@ -48,7 +48,7 @@ fi
 register_mod_for_unload "$PATCH_MOD_NAME"
 
 klp_tc_milestone "Check that live patch is blocked"
-if klp_wait_complete 10; then
+if klp_wait_complete "$PATCH_MOD_NAME" 10; then
     klp_tc_abort "patching finished prematurely"
 fi
 
@@ -60,7 +60,7 @@ echo "nop" > /sys/kernel/debug/tracing/current_tracer
 echo "" > /sys/kernel/debug/tracing/set_ftrace_filter
 
 klp_tc_milestone "Wait for completion"
-if ! klp_wait_complete 61; then
+if ! klp_wait_complete "$PATCH_MOD_NAME" 61; then
     klp_dump_blocking_processes
     klp_tc_abort "patching didn't finish in time"
 fi

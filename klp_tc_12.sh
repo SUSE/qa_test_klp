@@ -47,7 +47,7 @@ fi
 register_mod_for_unload "$PATCH_MOD_NAME"
 
 klp_tc_milestone "Check that live patch is blocked"
-if klp_wait_complete 10; then
+if klp_wait_complete "$PATCH_MOD_NAME" 10; then
     klp_tc_abort "patching finished prematurely"
 fi
 
@@ -58,7 +58,7 @@ klp_tc_milestone "Remove kretprobe from orig_do_sleep"
 echo -n "orig_do_sleep" > /sys/kernel/debug/klp_test_support/remove_probes
 
 klp_tc_milestone "Wait for completion"
-if ! klp_wait_complete 61; then
+if ! klp_wait_complete "$PATCH_MOD_NAME" 61; then
     klp_dump_blocking_processes
     klp_tc_abort "patching didn't finish in time"
 fi
