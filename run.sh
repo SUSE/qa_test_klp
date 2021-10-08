@@ -15,7 +15,7 @@ klp_tc_13.sh|Patch traced function
 klp_tc_14.sh|Trace patched function
 klp_tc_15.sh|Patch graph-traced function
 klp_tc_16.sh|Graph-trace patched function
-klp_tc_17.sh|Check that patching a kprobed function fails|[ \"$(uname -m)\" != s390x ]
+klp_tc_17.sh|Check that patching a kprobed function fails
 "
 
 bats=$(which bats 2>/dev/null)
