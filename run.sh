@@ -35,7 +35,7 @@ IFS="
 for i in $TESTS; do
     file=$(echo $i | cut -d'|' -f1)
     desc=$(echo $i | cut -d'|' -f2)
-    cond=$(echo $i | cut -d'|' -f3)
+    cond=$(echo $i | cut -d'|' -f3-)
 
     [ -z "$cond" ] && cond=true
 
