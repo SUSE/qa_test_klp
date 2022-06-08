@@ -354,6 +354,8 @@ if [ ! -f $KLP_ENV_CACHE_FILE ]; then
                 ;;
             s390x) echo "__s390x_" >> $KLP_ENV_CACHE_FILE
                 ;;
+            aarch64) echo "__arm64_" >> $KLP_ENV_CACHE_FILE
+                ;;
             *) echo >> $KLP_ENV_CACHE_FILE
                 ;;
         esac
