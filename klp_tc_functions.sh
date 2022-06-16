@@ -354,7 +354,12 @@ if [ ! -f $KLP_ENV_CACHE_FILE ]; then
                 ;;
             s390x) echo "__s390x_" >> $KLP_ENV_CACHE_FILE
                 ;;
-            *) echo >> $KLP_ENV_CACHE_FILE
+            aarch64) echo "__arm64_" >> $KLP_ENV_CACHE_FILE
+                ;;
+            # CONFIG_ARCH_HAS_SYSCALL_WRAPPER is not set for ppc64le
+            ppc64le) echo >> $KLP_ENV_CACHE_FILE
+                ;;
+            *) klp_tc_abort "Arch $(uname -m) not supported"
                 ;;
         esac
     else
