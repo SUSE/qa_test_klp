@@ -345,7 +345,7 @@ if [ ! -f $KLP_ENV_CACHE_FILE ]; then
     echo -n 'export KLP_TEST_SYSCALL_FN_PREFIX=' >> $KLP_ENV_CACHE_FILE
 
     # generate LINUX_VERSION_CODE from `uname -r`
-    KVER="$(uname -r | cut -d- -f1)"
+    KVER="$(uname -r | awk -F'[-+]' '{print $1}')"
     PART1="$(echo $KVER | cut -d. -f1)"
     PART2="$(echo $KVER | cut -d. -f2)"
     PART3="$(echo $KVER | cut -d. -f3)"
