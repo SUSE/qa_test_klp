@@ -50,6 +50,9 @@ for N in $(seq 1 $((N_PATCHES - 1))); do
     klp_tc_milestone "Removing getpid patch $N"
     PATCH_KO="${PATCH_KOS[$N]}"
     PATCH_MOD_NAME="$(basename "$PATCH_KO" .ko)"
+    if ! klp_wait_complete "$PATCH_MOD_NAME" 61; then
+        klp_tc_abort "module reference count did not drop to zero ($PATCH_MOD_NAME)"
+    fi
     rmmod "$PATCH_MOD_NAME"
     if test $? -ne 0;then
         klp_tc_abort "FAILED to remove the kernel module $PATCH_MOD_NAME"
