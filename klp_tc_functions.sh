@@ -288,7 +288,7 @@ function klp_tc_cleanup() {
 }
 
 function klp_tc_init() {
-    trap "[ \$? -ne 0 ] && call_recovery_hooks; klp_tc_cleanup; echo TEST FAILED while executing \'\$BASH_COMMAND\'" EXIT
+    trap "ret=\$?; [ \$ret -ne 0 ] && call_recovery_hooks; klp_tc_cleanup; result=FAILED; [ \$ret -eq 22 ] && result=SKIPPED; echo TEST \$result while executing \'\$BASH_COMMAND\'" EXIT
     # timestamp every line of output
     exec > >(awk '{ print strftime("[%T] ") $0 }')
     exec 2>&1
@@ -319,8 +319,12 @@ function klp_tc_milestone() {
 }
 
 function klp_tc_abort() {
-    klp_tc_write "TEST CASE ABORT" "$*"
-    exit 1
+    local ret=$?
+    local result="ABORT"
+
+    [ $ret -eq 22 ] && result="SKIPPED"
+    klp_tc_write "TEST CASE $result" "$*"
+    exit $ret
 }
 
 # detect environment settings
