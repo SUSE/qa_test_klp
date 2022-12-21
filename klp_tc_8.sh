@@ -62,7 +62,7 @@ done
 klp_tc_milestone "Testing final patch removal"
 PATCH_KO="${PATCH_KOS[$N_PATCHES]}"
 PATCH_MOD_NAME="$(basename "$PATCH_KO" .ko)"
-if rmmod "$PATCH_MOD_NAME"; then
+if rmmod "$PATCH_MOD_NAME" 2>/dev/null; then
     klp_tc_abort "It should not be possible to remove the kernel module ${PATCH_MOD_NAME}"
 fi
 
