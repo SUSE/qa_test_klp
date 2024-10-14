@@ -22,6 +22,16 @@
 #error "Test support module requires CONFIG_DEBUG_FS=y."
 #endif
 
+/*
+ * Cover all the different no_llseek() versions:
+ * - kernels where "no_llseek" exists as a function symbol.
+ * - kernels where "no_llseek" exists as a MACRO to NULL.
+ * - kernels where "no_llseek" doesn't exist at all.
+ */
+#ifndef no_llseek
+loff_t no_llseek(struct file *file, loff_t offset, int whence) __attribute__((weak));
+#endif
+
 static const struct file_operations fops_active_livepatch_id = {
 	.owner = THIS_MODULE,
 	.read = orig_active_livepatch_id_read,
