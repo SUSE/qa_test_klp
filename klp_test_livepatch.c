@@ -27,7 +27,7 @@
 #define USE_OLD_REG_API @@USE_OLD_REG_API@@
 
 #if PATCH_GETPID
-asmlinkage long PATCHED_SYM(@@SYSCALL_FN_PREFIX@@sys_getpid)(void)
+asmlinkage static long PATCHED_SYM(@@SYSCALL_FN_PREFIX@@sys_getpid)(void)
 {
 	return task_tgid_vnr(current);
 }

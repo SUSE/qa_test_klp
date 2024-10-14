@@ -68,9 +68,9 @@ void PATCHED_SYM(make_stackframe_valid)(void)
 }
 
 static noinline __used
-const size_t PATCHED_SYM(do_read_active_livepatch_id)(char __user *to,
-						      loff_t pos,
-						      size_t count)
+size_t PATCHED_SYM(do_read_active_livepatch_id)(char __user *to,
+						loff_t pos,
+						size_t count)
 {
 	/*
 	 * This is an inefficient implementation of copy_to_user().
