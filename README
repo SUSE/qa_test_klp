@@ -5,7 +5,7 @@ infrastructure in the hope of making bugs creep out of their hideouts.
 Brief test case description
 ---------------------------
 
-TC3 Patch under pressure
+TC3 Patch under pressure (already tested on kselftests)
     * Patch a heavily hammered function in kernel.
 
 TC5 Test kernel live patching in quick succession
@@ -19,7 +19,7 @@ TC7 Test kernel live patching in low-memory condition
       patching.
     * Requires hiworkload (needs to be compiled).
 
-TC8 Patch with replace-all
+TC8 Patch with replace-all (already tested on kselftests)
     * Make sure "replace-all" KLP function works as expected.
 
 TC10 Patch caller of graph traced callee
@@ -50,7 +50,7 @@ TC16 Graph-trace patched function
     * Graph-trace a patched function and check that the live patch
       remains in effect.
 
-TC17 Check that patching a kprobed function fails
+TC17 Check that patching a kprobed function fails (already tested on ksefltests)
     * Patch a function with a kprobe on it and check that the live
       patch fails to load: kprobes' and live patching ftrace_ops both
       have FTRACE_OPS_FL_IPMODIFY set.
