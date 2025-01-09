@@ -21,6 +21,7 @@
 #include <asm/uaccess.h>
 
 #define USE_OLD_HRTIMER_API @@USE_OLD_HRTIMER_API@@
+#define USE_6_13_HRTIMER_API @@USE_6_13_HRTIMER_API@@
 
 #if defined(PATCH_ID)
 #define __PATCHED_SYM(id, sym) klp_ ## id ## _ ## sym
@@ -130,6 +131,9 @@ int PATCHED_SYM(do_sleep)(unsigned long secs, int task_state)
 	hrtimer_init_on_stack(&t.timer, CLOCK_MONOTONIC, HRTIMER_MODE_REL);
 	hrtimer_set_expires_range_ns(&t.timer, ktime_set(secs, 0), 0);
 	hrtimer_init_sleeper(&t, current);
+#elif USE_6_13_HRTIMER_API
+	hrtimer_setup_sleeper_on_stack(&t, CLOCK_MONOTONIC, HRTIMER_MODE_REL);
+	hrtimer_set_expires_range_ns(&t.timer, ktime_set(secs, 0), 0);
 #else
 	hrtimer_init_sleeper_on_stack(&t, CLOCK_MONOTONIC, HRTIMER_MODE_REL);
 	hrtimer_set_expires_range_ns(&t.timer, ktime_set(secs, 0), 0);
