@@ -28,7 +28,8 @@ function __klp_add_patched_func() {
 }
 
 function klp_create_header() {
-    sed "s%@@USE_OLD_HRTIMER_API@@%$KLP_TEST_HRTIMER_OLD%" \
+    sed -e "s%@@USE_OLD_HRTIMER_API@@%$KLP_TEST_HRTIMER_OLD%" \
+	-e "s%@@USE_6_13_HRTIMER_API@@%$KLP_TEST_USE_6_13_HRTIMER_API%" \
 	    "${SOURCE_DIR}/klp_test_support_mod.h" \
 	    > "${OUTPUT_DIR}/klp_test_support_mod.h"
 }
@@ -378,5 +379,9 @@ if [ ! -f $KLP_ENV_CACHE_FILE ]; then
     # based on presence of an obsolete API function
     echo -n 'export KLP_TEST_USE_OLD_REG_API=' >> $KLP_ENV_CACHE_FILE
     ( grep -q 'T klp_register_patch$' /proc/kallsyms && echo "1" || echo "0" ) >> $KLP_ENV_CACHE_FILE
+
+    # Decide whether to use hrtimer_setup*() API (kernel commit c9bd83abfeb9)
+    echo -n 'export KLP_TEST_USE_6_13_HRTIMER_API=' >> $KLP_ENV_CACHE_FILE
+    ( grep -q 'T hrtimer_setup_sleeper_on_stack$' /proc/kallsyms && echo "1" || echo "0" ) >> $KLP_ENV_CACHE_FILE
 fi
 . $KLP_ENV_CACHE_FILE
