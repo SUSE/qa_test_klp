@@ -430,3 +430,4 @@ static void test_support_mod_exit(void)
 module_init(test_support_mod_init);
 module_exit(test_support_mod_exit);
 MODULE_LICENSE("GPL");
+MODULE_DESCRIPTION("klp tests");
