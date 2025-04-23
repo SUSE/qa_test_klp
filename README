@@ -38,7 +38,7 @@ TC13 Patch traced function
     * Patch a function which is being traced and check that the live
       patch really is in effect.
 
-TC14 Trace patched function
+TC14 Trace patched function (already tested in kselftests)
     * Trace a patched function and check that the live patch remains
       in effect.
 
