@@ -11,7 +11,7 @@ TC3 Patch under pressure (already tested on kselftests)
 TC5 Test kernel live patching in quick succession
     * Apply one patch after another in quick succession.
 
-TC6 Patch while CPUs are busy
+TC6 Patch while CPUs are busy (already tested in kselftests)
     * Make CPUs busy in user space and patch.
 
 TC7 Test kernel live patching in low-memory condition
