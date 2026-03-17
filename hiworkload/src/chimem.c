@@ -125,7 +125,6 @@ worker (size_t length)
         exit(5);
     }
     /* todo SET proc name */
-    wloop_reset();
     wloop_run();
     fprintf(stdout, "%lu finished.\n", getpid());
 }
@@ -137,6 +136,7 @@ leader (int num_worker, size_t length_per_worker)
     int ret;
     int i;
 
+    wloop_reset();
     ret = sig_install_handlers();
     if (ret < 0) {
         fprintf(stderr, "%lu failed to install sig handlers\n",
@@ -158,7 +158,6 @@ leader (int num_worker, size_t length_per_worker)
     }
 
     /* waiting */
-    wloop_reset();
     wloop_run();
 
     /* get childs */
