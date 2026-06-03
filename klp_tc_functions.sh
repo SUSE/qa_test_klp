@@ -333,21 +333,26 @@ KLP_ENV_CACHE_FILE=/tmp/live-patch/klp_env_cache
 if [ ! -f $KLP_ENV_CACHE_FILE ]; then
     mkdir -p $(dirname $KLP_ENV_CACHE_FILE)
 
+    # Write to a temp file first, then atomically move to the final
+    # location. This prevents a partial cache from being left behind
+    # if klp_tc_abort is called midway through the detection.
+    KLP_ENV_CACHE_TMP=$(mktemp $(dirname $KLP_ENV_CACHE_FILE)/klp_env_cache.XXXXXX)
+
     # compile-test for hrtimer API ()
     COMPILETEST_DIR=/tmp/live-patch/klp_compile_test
     mkdir -p $COMPILETEST_DIR
     cp "$SOURCE_DIR"/klp_compile_test_hrtimer.c $COMPILETEST_DIR/
 
-    echo -n 'export KLP_TEST_HRTIMER_OLD=' > $KLP_ENV_CACHE_FILE
+    echo -n 'export KLP_TEST_HRTIMER_OLD=' > $KLP_ENV_CACHE_TMP
     if klp_compile_module $COMPILETEST_DIR/klp_compile_test_hrtimer.c > /dev/null 2>&1;
     then
-        echo "1" >> $KLP_ENV_CACHE_FILE
+        echo "1" >> $KLP_ENV_CACHE_TMP
     else
-        echo "0" >> $KLP_ENV_CACHE_FILE
+        echo "0" >> $KLP_ENV_CACHE_TMP
     fi
 
     # Check for getpid syscall prefix
-    echo -n 'export KLP_TEST_SYSCALL_FN_PREFIX=' >> $KLP_ENV_CACHE_FILE
+    echo -n 'export KLP_TEST_SYSCALL_FN_PREFIX=' >> $KLP_ENV_CACHE_TMP
 
     # generate LINUX_VERSION_CODE from `uname -r`
     KVER="$(uname -r | awk -F'[-+]' '{print $1}')"
@@ -359,29 +364,31 @@ if [ ! -f $KLP_ENV_CACHE_FILE ]; then
     if [ "$VERSION_CODE" -ge 266496 ] # test for kernel 4.17.0 and newer
     then
         case $(uname -m) in
-            x86_64) echo "__x64_" >> $KLP_ENV_CACHE_FILE
+            x86_64) echo "__x64_" >> $KLP_ENV_CACHE_TMP
                 ;;
-            s390x) echo "__s390x_" >> $KLP_ENV_CACHE_FILE
+            s390x) echo "__s390x_" >> $KLP_ENV_CACHE_TMP
                 ;;
-            aarch64) echo "__arm64_" >> $KLP_ENV_CACHE_FILE
+            aarch64) echo "__arm64_" >> $KLP_ENV_CACHE_TMP
                 ;;
             # CONFIG_ARCH_HAS_SYSCALL_WRAPPER is not set for ppc64le
-            ppc64le) echo >> $KLP_ENV_CACHE_FILE
+            ppc64le) echo >> $KLP_ENV_CACHE_TMP
                 ;;
             *) klp_tc_abort "Arch $(uname -m) not supported"
                 ;;
         esac
     else
-        echo >> $KLP_ENV_CACHE_FILE
+        echo >> $KLP_ENV_CACHE_TMP
     fi
 
     # Decide whether to use simplified KLP API (kernel commit 958ef1e39d24)
     # based on presence of an obsolete API function
-    echo -n 'export KLP_TEST_USE_OLD_REG_API=' >> $KLP_ENV_CACHE_FILE
-    ( grep -q 'T klp_register_patch$' /proc/kallsyms && echo "1" || echo "0" ) >> $KLP_ENV_CACHE_FILE
+    echo -n 'export KLP_TEST_USE_OLD_REG_API=' >> $KLP_ENV_CACHE_TMP
+    ( grep -q 'T klp_register_patch$' /proc/kallsyms && echo "1" || echo "0" ) >> $KLP_ENV_CACHE_TMP
 
     # Decide whether to use hrtimer_setup*() API (kernel commit c9bd83abfeb9)
-    echo -n 'export KLP_TEST_USE_6_13_HRTIMER_API=' >> $KLP_ENV_CACHE_FILE
-    ( grep -q 'T hrtimer_setup_sleeper_on_stack$' /proc/kallsyms && echo "1" || echo "0" ) >> $KLP_ENV_CACHE_FILE
+    echo -n 'export KLP_TEST_USE_6_13_HRTIMER_API=' >> $KLP_ENV_CACHE_TMP
+    ( grep -q 'T hrtimer_setup_sleeper_on_stack$' /proc/kallsyms && echo "1" || echo "0" ) >> $KLP_ENV_CACHE_TMP
+
+    mv "$KLP_ENV_CACHE_TMP" "$KLP_ENV_CACHE_FILE"
 fi
 . $KLP_ENV_CACHE_FILE
