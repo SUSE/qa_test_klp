@@ -373,6 +373,8 @@ if [ ! -f $KLP_ENV_CACHE_FILE ]; then
             # CONFIG_ARCH_HAS_SYSCALL_WRAPPER is not set for ppc64le
             ppc64le) echo >> $KLP_ENV_CACHE_TMP
                 ;;
+            riscv64) echo "__riscv_" >> $KLP_ENV_CACHE_TMP
+                ;;
             *) klp_tc_abort "Arch $(uname -m) not supported"
                 ;;
         esac
