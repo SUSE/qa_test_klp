@@ -337,6 +337,7 @@ if [ ! -f $KLP_ENV_CACHE_FILE ]; then
     # location. This prevents a partial cache from being left behind
     # if klp_tc_abort is called midway through the detection.
     KLP_ENV_CACHE_TMP=$(mktemp $(dirname $KLP_ENV_CACHE_FILE)/klp_env_cache.XXXXXX)
+    trap 'rm -f "$KLP_ENV_CACHE_TMP"' EXIT
 
     # compile-test for hrtimer API ()
     COMPILETEST_DIR=/tmp/live-patch/klp_compile_test
