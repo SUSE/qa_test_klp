@@ -27,6 +27,9 @@ else
     cat > $script <<EOF
 #!/bin/sh
 ret=0
+passed=0
+failed=0
+skipped=0
 EOF
 fi
 
@@ -50,15 +53,17 @@ EOF
         cat >> $script <<EOF
 echo "== $desc =="
 if $cond; then
-    ./$file || ret=1
+    ./$file && passed=\$((passed+1)) || { ret=1; failed=\$((failed+1)); }
 else
     echo "skipped"
+    skipped=\$((skipped+1))
 fi
 echo
 EOF
     fi
 done
 
+[ ! "$bats" ] && echo 'echo "Results: passed=$passed failed=$failed skipped=$skipped"' >> $script
 [ ! "$bats" ] && echo 'exit $ret' >> $script
 
 chmod 755 $script
