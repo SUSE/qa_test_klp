@@ -162,7 +162,31 @@ leader (int num_worker, size_t length_per_worker)
 
     /* get childs */
     team_kill_worker();
-    /* wait ?? */
+
+    /* wait for workers to exit, force SIGKILL after timeout */
+    for (i = 0; i < worker_ID_I; i++) {
+        int status;
+        int timeout = 5;
+        pid_t waited = 0;
+
+        while (timeout-- > 0) {
+            waited = waitpid(worker_ID[i], &status, WNOHANG);
+            if (waited > 0)
+                break;
+            if (waited < 0) {
+                if (errno == EINTR) {
+                    waited = 0;
+                    continue;
+                }
+                break;
+            }
+            sleep(1);
+        }
+        if (waited == 0) {
+            kill(worker_ID[i], SIGKILL);
+            waitpid(worker_ID[i], &status, 0);
+        }
+    }
     exit(0);
 }
 

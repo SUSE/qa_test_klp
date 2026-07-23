@@ -66,6 +66,6 @@ function workload_mem {
     $chimem_bin &
     pid=$!
     if test "X$(type -t push_recovery_fn)" == "Xfunction"; then
-        push_recovery_fn "kill $pid"
+        push_recovery_fn "kill $pid 2>/dev/null"
     fi
 }
