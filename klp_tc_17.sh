@@ -33,7 +33,9 @@ PATCH_DIR="/tmp/live-patch/tc_17"
 klp_prepare_test_support_module "$PATCH_DIR"
 
 klp_tc_milestone "Add kprobe to orig_do_read_active_livepatch_id"
-echo -n orig_do_read_active_livepatch_id > /sys/kernel/debug/klp_test_support/add_kprobe
+if ! echo -n orig_do_read_active_livepatch_id > /sys/kernel/debug/klp_test_support/add_kprobe 2>/dev/null; then
+   (exit 22) || klp_tc_abort "Failed to add kprobe (KPROBES_ON_FTRACE not supported?)"
+fi
 
 klp_tc_milestone "Try to insert live patch"
 if insmod "$PATCH_DIR/$PATCH_MOD_NAME".ko > /dev/null 2>&1; then
